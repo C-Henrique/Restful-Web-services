@@ -2,9 +2,14 @@ package com.chenrique.rest.webservices.restful_web_services.user;
 
 import java.time.LocalDate;
 
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Size;
+
 public class User {
     private Integer id;
+    @Size(min = 2, message = "O nome dever ter no minimo 2 caracteres")
     private String name;
+    @Past(message = "Data deveria está no passado")
     private LocalDate birthDate;
 
     public User(Integer id, String name, LocalDate birthDate) {
