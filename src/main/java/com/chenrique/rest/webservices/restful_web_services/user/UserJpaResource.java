@@ -2,7 +2,6 @@ package com.chenrique.rest.webservices.restful_web_services.user;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
@@ -18,27 +17,27 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import jakarta.validation.Valid;
 
 @RestController
-public class UserResource {
+public class UserJpaResource {
 
-	private UserRepository service;
+	private UserDAOService service;
 
-	public UserResource(UserRepository service) {
+	public UserJpaResource(UserDAOService service) {
 		this.service = service;
 	}
 
-	@GetMapping("/jpa/users")
+	@GetMapping("/users")
 	public List<User> retrieveAllUsers() {
 		return service.findAll();
 	}
 
-	@GetMapping("/jpa/users/{id}")
+	@GetMapping("/users/{id}")
 	public EntityModel<User> retrieveUser(@PathVariable("id") Integer id) {
-		Optional<User> user = service.findById(id);
+		User user = service.findOne(id);
 
-		if (user.isEmpty())
+		if (user == null)
 			throw new NotFoundUserException("id:" + id);
 
-		EntityModel<User> entityModel = EntityModel.of(user.get());
+		EntityModel<User> entityModel = EntityModel.of(user);
 
 		WebMvcLinkBuilder link = WebMvcLinkBuilder
 				.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).retrieveAllUsers());
@@ -47,7 +46,7 @@ public class UserResource {
 
 	}
 
-	@PostMapping("/jpa/users")
+	@PostMapping("/users")
 	public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
 
 		User savedUser = service.save(user);
@@ -57,7 +56,7 @@ public class UserResource {
 		return ResponseEntity.created(location).build();
 	}
 
-	@DeleteMapping("/jpa/users/{id}")
+	@DeleteMapping("/users/{id}")
 	public void deleteUser(@PathVariable("id") int id) {
 		service.deleteById(id);
 	}
