@@ -21,9 +21,11 @@ import jakarta.validation.Valid;
 public class UserResource {
 
 	private UserRepository service;
+	private PostRepository postService;
 
-	public UserResource(UserRepository service) {
+	public UserResource(UserRepository service, PostRepository postService) {
 		this.service = service;
+		this.postService = postService;
 	}
 
 	@GetMapping("/jpa/users")
@@ -61,4 +63,30 @@ public class UserResource {
 	public void deleteUser(@PathVariable("id") int id) {
 		service.deleteById(id);
 	}
+
+	@GetMapping("/jpa/users/{id}/posts")
+	public List<Post> getAllPostOfUser(@PathVariable int id) {
+		Optional<User> user = service.findById(id);
+		if (user.isEmpty())
+			throw new NotFoundUserException("id:" + id);
+
+		return user.get().getPosts();
+	}
+
+	@PostMapping("/jpa/users/{id}/posts")
+	public ResponseEntity<Object> createPost(@PathVariable int id, @Valid @RequestBody Post post) {
+		Optional<User> user = service.findById(id);
+		if (user.isEmpty())
+			throw new NotFoundUserException("id:" + id);
+
+		post.setUser(user.get());
+
+		Post savePost = postService.save(post);
+
+		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savePost.getId())
+				.toUri();
+
+		return ResponseEntity.created(location).build();
+	}
+
 }
